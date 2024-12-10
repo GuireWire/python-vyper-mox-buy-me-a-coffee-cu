@@ -65,4 +65,15 @@ def test_fund_ten_times_and_withdraw(coffee, account):
 
 def test_get_rate(coffee):
     assert coffee.get_eth_to_usd_rate(SEND_VALUE) > 0
-    
+
+def test_fund_via_fallback(coffee, account):
+    # Arrange
+    fund_value = SEND_VALUE  # Define the amount to send
+
+    # Act - Send Ether to the contract (this triggers __default__ function)
+    boa.env.set_balance(account.address, fund_value)  # Ensure the account has enough balance
+    with boa.env.prank(account.address):  # Pass the address, not the account object
+        coffee.__default__(value=fund_value)
+
+    # Assert - Check if the contract's balance is greater than 0
+    assert boa.env.get_balance(coffee.address) > 0, "Contract balance should be greater than 0"
